@@ -57,6 +57,12 @@
                     Mulai Kamera
                 </button>
 
+                <!-- Tombol untuk menghentikan kamera -->
+                <button id="stop-camera-btn" class="absolute top-2 right-2 z-10 bg-red-600/80 hover:bg-red-700 text-white text-sm font-semibold py-2 px-3 rounded-lg shadow hidden flex items-center gap-1">
+                    <ion-icon name="stop-circle-outline" class="text-lg"></ion-icon>
+                    Stop
+                </button>
+
                 <!-- Overlay saat memindai -->
                 <div id="scan-overlay" class="absolute inset-0 bg-black/50 backdrop-blur-sm flex-col items-center justify-center text-white text-lg font-semibold hidden">
                     <div class="w-16 h-16 border-4 border-t-transparent border-white rounded-full animate-spin"></div>
@@ -64,23 +70,23 @@
                 </div>
             </div>
 
-            <!-- Tombol Aksi Utama -->
-            <div class="mt-6">
-                <button id="scan-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-lg shadow-lg transition-all duration-300 flex items-center justify-center gap-3 text-lg disabled:bg-gray-400 disabled:cursor-not-allowed" disabled>
-                    <!-- Teks akan diubah oleh JS -->
-                    <span>Masukkan API Key di Pengaturan</span>
-                </button>
-            </div>
+            <!-- Tombol Aksi Utama DIHILANGKAN: Auto-scan aktif tanpa tombol -->
 
             <!-- ... (Sisa HTML tetap sama: Area Daftar Hadir, Modal Konfirmasi, Toast) ... -->
             <!-- Area Daftar Hadir -->
             <section class="mt-8">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-xl font-semibold">Daftar Hadir</h2>
-                    <button id="export-btn" class="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg shadow-md transition-all flex items-center gap-2 text-sm disabled:bg-gray-400">
-                        <ion-icon name="download-outline"></ion-icon>
-                        Unduh (.csv)
-                    </button>
+                    <div class="flex items-center gap-2">
+                        <button id="reset-btn" class="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg shadow-md transition-all flex items-center gap-2 text-sm disabled:bg-gray-400">
+                            <ion-icon name="trash-outline"></ion-icon>
+                            Reset Data
+                        </button>
+                        <button id="export-btn" class="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg shadow-md transition-all flex items-center gap-2 text-sm disabled:bg-gray-400">
+                            <ion-icon name="download-outline"></ion-icon>
+                            Unduh (.csv)
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Kontainer list -->
@@ -93,31 +99,7 @@
         </main>
     </div>
 
-    <!-- Modal Konfirmasi Data -->
-    <div id="modal-container" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
-        <div id="modal-content" class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-sm transition-all transform scale-95 opacity-0">
-            <h3 class="text-xl font-semibold mb-4">Konfirmasi Data</h3>
-            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Periksa hasil scan AI. Mohon perbaiki jika ada kesalahan.</p>
-            <form id="attendance-form">
-                <div class="mb-4">
-                    <label for="nik" class="block text-sm font-medium mb-1">NIK (Nomor Induk Kependudukan)</label>
-                    <input type="text" id="nik" name="nik" class="w-full p-2 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600" inputmode="numeric" pattern="\d*" required>
-                </div>
-                <div class="mb-6">
-                    <label for="nama" class="block text-sm font-medium mb-1">Nama Lengkap</label>
-                    <input type="text" id="nama" name="nama" class="w-full p-2 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600" required>
-                </div>
-                <div class="flex justify-end gap-3">
-                    <button type="button" id="cancel-btn" class="bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-800 dark:text-gray-100 font-medium py-2 px-5 rounded-lg transition-all">
-                        Batal
-                    </button>
-                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-5 rounded-lg transition-all">
-                        Simpan
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
+    <!-- Modal Konfirmasi Data DIHAPUS: Auto-scan tanpa konfirmasi -->
     
     <!-- Modal Pengaturan API Key -->
     <div id="apiKey-modal-container" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
@@ -164,20 +146,15 @@
             // --- Elemen DOM ---
             const video = document.getElementById('camera-feed');
             const startCameraBtn = document.getElementById('start-camera-btn');
-            const scanBtn = document.getElementById('scan-btn');
+            const stopCameraBtn = document.getElementById('stop-camera-btn');
             const scanOverlay = document.getElementById('scan-overlay');
             const scanStatus = document.getElementById('scan-status');
             const attendanceList = document.getElementById('attendance-list');
             const emptyState = document.getElementById('empty-state');
             const exportBtn = document.getElementById('export-btn');
+            const resetBtn = document.getElementById('reset-btn');
             
-            // --- Elemen Modal Konfirmasi ---
-            const modalContainer = document.getElementById('modal-container');
-            const modalContent = document.getElementById('modal-content');
-            const attendanceForm = document.getElementById('attendance-form');
-            const nikInput = document.getElementById('nik');
-            const namaInput = document.getElementById('nama');
-            const cancelBtn = document.getElementById('cancel-btn');
+            // --- Elemen Modal Konfirmasi DIHILANGKAN ---
 
             // --- Elemen Modal API Key ---
             const settingsBtn = document.getElementById('settings-btn');
@@ -195,6 +172,12 @@
             const canvas = document.getElementById('capture-canvas');
             const context = canvas.getContext('2d');
             
+            // --- Auto Scan State ---
+            let autoScanRunning = false;
+            let scanInProgress = false;
+            let autoScanTimer = null;
+            const AUTO_SCAN_DELAY = 2500; // ms jeda antar-scan
+
             // --- Fungsi Inisialisasi ---
             function init() {
                 loadAttendanceList();
@@ -202,13 +185,9 @@
                 
                 // Event Listeners
                 startCameraBtn.addEventListener('click', startCamera);
-                scanBtn.addEventListener('click', triggerScan);
-                attendanceForm.addEventListener('submit', handleSubmit);
-                cancelBtn.addEventListener('click', () => hideModal(modalContainer, modalContent));
-                modalContainer.addEventListener('click', (e) => {
-                    if (e.target === modalContainer) hideModal(modalContainer, modalContent);
-                });
+                stopCameraBtn.addEventListener('click', stopCamera);
                 exportBtn.addEventListener('click', exportToCSV);
+                resetBtn.addEventListener('click', resetData);
                 
                 // Event Listeners API Key Modal
                 settingsBtn.addEventListener('click', () => showModal(apiKeyModalContainer, apiKeyModalContent));
@@ -232,7 +211,7 @@
                     // Tampilkan modal pengaturan jika API key belum ada
                     setTimeout(() => showModal(apiKeyModalContainer, apiKeyModalContent), 500);
                 }
-                updateScanButtonState();
+                ensureAutoScan();
             }
 
             // --- Simpan API Key ---
@@ -244,7 +223,7 @@
                     apiKeyReady = true;
                     hideModal(apiKeyModalContainer, apiKeyModalContent);
                     showToast('API Key berhasil disimpan.', 'success');
-                    updateScanButtonState();
+                    ensureAutoScan();
                 } else {
                     showToast('API Key tidak boleh kosong.', 'error');
                 }
@@ -265,8 +244,9 @@
                     video.srcObject = localStream;
                     video.play(); // Pastikan video diputar
                     startCameraBtn.classList.add('hidden');
+                    stopCameraBtn.classList.remove('hidden');
                     cameraReady = true;
-                    updateScanButtonState();
+                    ensureAutoScan();
                 } catch (err) {
                     console.error("Error mengakses kamera:", err);
                     showToast(`Error kamera: ${err.message}`, 'error');
@@ -279,8 +259,9 @@
                             video.srcObject = localStream;
                             video.play();
                             startCameraBtn.classList.add('hidden');
+                            stopCameraBtn.classList.remove('hidden');
                             cameraReady = true;
-                            updateScanButtonState();
+                            ensureAutoScan();
                         } catch (fallbackErr) {
                             showToast('Tidak dapat mengakses kamera.', 'error');
                             console.error("Error fallback kamera:", fallbackErr);
@@ -288,22 +269,58 @@
                     }
                 }
             }
-            
-            // --- Cek Status Tombol Scan ---
-            function updateScanButtonState() {
-                if (cameraReady && apiKeyReady) {
-                    scanBtn.disabled = false;
-                    scanBtn.innerHTML = `
-                        <ion-icon name="scan-outline" class="text-2xl"></ion-icon>
-                        Scan KTP Sekarang
-                    `;
-                } else if (!apiKeyReady) {
-                    scanBtn.disabled = true;
-                    scanBtn.innerHTML = '<span>Masukkan API Key di Pengaturan</span>';
-                } else if (!cameraReady) {
-                    scanBtn.disabled = true;
-                    scanBtn.innerHTML = '<span>Aktifkan Kamera...</span>';
+
+            // --- Hentikan Kamera & Auto-scan ---
+            function stopCamera() {
+                try {
+                    stopAutoScan();
+                    scanInProgress = false;
+                    scanOverlay.classList.add('hidden');
+                    scanOverlay.classList.remove('flex');
+                    if (localStream) {
+                        localStream.getTracks().forEach(t => t.stop());
+                    }
+                    localStream = null;
+                    video.srcObject = null;
+                    cameraReady = false;
+                    stopCameraBtn.classList.add('hidden');
+                    startCameraBtn.classList.remove('hidden');
+                    showToast('Kamera dihentikan.', 'success', 1200);
+                } catch (e) {
+                    console.warn('Gagal menghentikan kamera:', e);
                 }
+            }
+
+            // --- Auto Scan Controller ---
+            function ensureAutoScan() {
+                if (cameraReady && apiKeyReady) {
+                    startAutoScan();
+                } else {
+                    stopAutoScan();
+                }
+            }
+
+            function startAutoScan() {
+                if (autoScanRunning) return;
+                autoScanRunning = true;
+                scheduleNextScan(200); // mulai cepat setelah siap
+            }
+
+            function stopAutoScan() {
+                autoScanRunning = false;
+                if (autoScanTimer) {
+                    clearTimeout(autoScanTimer);
+                    autoScanTimer = null;
+                }
+            }
+
+            function scheduleNextScan(delay = AUTO_SCAN_DELAY) {
+                if (!autoScanRunning) return;
+                if (autoScanTimer) clearTimeout(autoScanTimer);
+                autoScanTimer = setTimeout(async () => {
+                    await triggerScan();
+                    scheduleNextScan();
+                }, delay);
             }
 
             // --- Fungsi "Scan" (Menjalankan Gemini AI) ---
@@ -312,6 +329,8 @@
                     showToast('Kamera atau API Key belum siap.', 'error');
                     return;
                 }
+                if (scanInProgress) return; // hindari overlap
+                scanInProgress = true;
                 
                 // 1. Tampilkan overlay "Memproses..."
                 scanStatus.textContent = 'Mengambil gambar...';
@@ -336,28 +355,34 @@
                     const parsedData = await callGeminiAPI(base64ImageData);
                     console.log("Hasil Parsing:", parsedData);
 
-                    // 5. Isi modal dengan hasil parsing
-                    nikInput.value = parsedData.nik || '';
-                    namaInput.value = parsedData.nama || '';
+                    const nik = parsedData.nik || '';
+                    const nama = (parsedData.nama || '').toUpperCase().trim();
 
-                    // 6. Sembunyikan overlay dan tampilkan modal
+                    // Validasi hasil
+                    if (!nik && !nama) {
+                        showToast('AI tidak menemukan data. Scan ulang.', 'error', 1500);
+                    } else if (!nik) {
+                        showToast('NIK tidak terbaca. Scan ulang.', 'error', 1500);
+                    } else if (!/^\d{16}$/.test(nik)) {
+                        showToast('Format NIK salah (harus 16 digit).', 'error', 1500);
+                    } else if (!nama) {
+                        showToast('Nama tidak terbaca. Scan ulang.', 'error', 1500);
+                    } else {
+                        // Simpan langsung tanpa konfirmasi
+                        saveAttendanceDirect(nik, nama);
+                    }
+
+                    // Sembunyikan overlay setelah proses
                     scanOverlay.classList.add('hidden');
                     scanOverlay.classList.remove('flex');
-                    showModal(modalContainer, modalContent);
-                    
-                    if (!parsedData.nik && !parsedData.nama) {
-                         showToast('AI tidak menemukan data. Coba lagi.', 'error');
-                    } else if (!parsedData.nik) {
-                        showToast('NIK tidak terbaca. Mohon periksa.', 'error');
-                    } else if (!parsedData.nama) {
-                        showToast('Nama tidak terbaca. Mohon periksa.', 'error');
-                    }
 
                 } catch (err) {
                     console.error("Error saat memanggil API Gemini:", err);
-                    showToast(`Gagal: ${err.message}`, 'error');
+                    showToast(`Gagal: ${err.message}`, 'error', 1500);
                     scanOverlay.classList.add('hidden');
                     scanOverlay.classList.remove('flex');
+                } finally {
+                    scanInProgress = false;
                 }
             }
 
@@ -452,38 +477,33 @@
             }
 
             // --- Fungsi Penyimpanan & Logika Bisnis ---
-            // (Fungsi handleSubmit, getAttendanceData, saveAttendanceData tetap sama)
-            function handleSubmit(e) {
-                e.preventDefault();
-                const nik = nikInput.value.trim();
-                const nama = namaInput.value.trim().toUpperCase(); // Simpan nama dalam huruf kapital
+            function saveAttendanceDirect(nik, nama) {
+                const cleanNik = String(nik).trim();
+                const cleanNama = String(nama).trim().toUpperCase();
                 const timestamp = new Date().toISOString();
 
-                if (!nik || !nama) {
-                    showToast('NIK dan Nama tidak boleh kosong.', 'error');
+                if (!cleanNik || !cleanNama) {
+                    showToast('NIK dan Nama tidak boleh kosong.', 'error', 1500);
                     return;
                 }
-
-                if (!/^\d{16}$/.test(nik)) {
-                    showToast('Format NIK salah. Harus 16 digit angka.', 'error');
+                if (!/^\d{16}$/.test(cleanNik)) {
+                    showToast('Format NIK salah. Harus 16 digit angka.', 'error', 1500);
                     return;
                 }
 
                 const attendanceData = getAttendanceData();
-                const isDuplicate = attendanceData.some(item => item.nik === nik);
+                const isDuplicate = attendanceData.some(item => item.nik === cleanNik);
                 if (isDuplicate) {
-                    showToast(`Gagal: ${nama} (NIK: ${nik}) sudah terdaftar hadir.`, 'error');
-                    hideModal(modalContainer, modalContent);
+                    showToast(`Gagal: ${cleanNama} (NIK: ${cleanNik}) sudah terdaftar.`, 'error', 1500);
                     return;
                 }
 
-                const newEntry = { nik, nama, waktu: timestamp };
+                const newEntry = { nik: cleanNik, nama: cleanNama, waktu: timestamp };
                 attendanceData.push(newEntry);
                 saveAttendanceData(attendanceData);
 
-                showToast(`Sukses: ${nama} berhasil diabsen.`, 'success');
+                showToast(`Sukses: ${cleanNama} berhasil diabsen.`, 'success');
                 loadAttendanceList();
-                hideModal(modalContainer, modalContent);
             }
 
             function getAttendanceData() {
@@ -534,7 +554,9 @@
             }
 
             function checkExportButtonState(data) {
-                exportBtn.disabled = data.length === 0;
+                const disabled = data.length === 0;
+                exportBtn.disabled = disabled;
+                resetBtn.disabled = disabled;
             }
 
             // --- Fungsi Ekspor CSV ---
@@ -562,11 +584,25 @@
                 showToast('Data berhasil diekspor.', 'success');
             }
 
+            // --- Reset Data CSV (hapus semua data lokal) ---
+            function resetData() {
+                const data = getAttendanceData();
+                if (data.length === 0) {
+                    showToast('Tidak ada data untuk direset.', 'error', 1500);
+                    return;
+                }
+                const ok = window.confirm('Yakin reset semua data absensi? Tindakan ini tidak bisa dibatalkan.');
+                if (!ok) return;
+                localStorage.removeItem(DB_NAME);
+                loadAttendanceList();
+                checkExportButtonState([]);
+                showToast('Data absensi berhasil direset.', 'success', 1500);
+            }
+
             // --- Fungsi Notifikasi (Toast) ---
-            // (Fungsi showToast tetap sama)
             let toastTimer;
-            function showToast(message, type = 'success') {
-                clearTimeout(toastTimer); 
+            function showToast(message, type = 'success', duration = 3000) {
+                clearTimeout(toastTimer);
                 toastMessage.textContent = message;
                 toast.classList.remove('bg-green-500', 'bg-red-500', 'translate-x-[200%]', 'translate-x-0');
                 toast.classList.add(type === 'success' ? 'bg-green-500' : 'bg-red-500');
@@ -574,13 +610,24 @@
                 toastTimer = setTimeout(() => {
                     toast.classList.add('translate-x-[200%]');
                     toast.classList.remove('translate-x-0');
-                }, 3000);
+                }, duration);
             }
 
             // --- Jalankan Aplikasi ---
+            // Hentikan kamera saat tab tidak aktif
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    stopCamera();
+                }
+            });
+
+            // Hentikan kamera saat halaman ditutup/di-reload
+            window.addEventListener('beforeunload', () => {
+                try { stopCamera(); } catch (_) {}
+            });
+
             init();
         });
     </script>
 </body>
 </html>
-
